@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>진법 변환 연습 게임</title>
+<style>
+  :root{
+    --bg:#FFF8E7; --card:#FFFFFF; --ink:#2B2D42; --sub:#6B7080;
+    --blue:#3A86FF; --green:#2EC4B6; --pink:#FF5D8F; --yellow:#FFBE0B; --orange:#FB8500;
+    --b2:#3A86FF; --b8:#8338EC; --b16:#FF5D8F;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",sans-serif;
+    display:flex;justify-content:center;align-items:flex-start;padding:24px 16px}
+  .wrap{width:100%;max-width:760px}
+  .card{background:var(--card);border-radius:28px;padding:32px;box-shadow:0 10px 0 #F2E3BF,0 16px 40px rgba(0,0,0,.08)}
+  h1{margin:0 0 6px;font-size:2.2rem;text-align:center}
+  .lead{text-align:center;color:var(--sub);font-size:1.15rem;margin:0 0 26px}
+  label{display:block;font-size:1.2rem;font-weight:700;margin:16px 0 8px}
+  input[type=text]{width:100%;font-size:1.5rem;padding:16px 18px;border:3px solid #E5E7EB;border-radius:16px;outline:none;font-family:inherit}
+  input[type=text]:focus{border-color:var(--blue)}
+  .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;border:none;border-radius:18px;
+    font-size:1.45rem;font-weight:800;padding:20px 28px;cursor:pointer;color:#fff;font-family:inherit;
+    box-shadow:0 6px 0 rgba(0,0,0,.18);transition:transform .08s, box-shadow .08s}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .full{width:100%}
+  .blue{background:var(--blue)} .green{background:var(--green)} .pink{background:var(--pink)}
+  .yellow{background:var(--yellow);color:#4A3500} .gray{background:#9AA0AE}
+  .rules{background:#F0F7FF;border-radius:18px;padding:16px 22px;margin-top:22px;font-size:1.08rem;line-height:1.75}
+  .err{color:#D62839;font-weight:700;min-height:1.6em;margin-top:10px;font-size:1.1rem}
+
+  .top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+  .pill{background:#fff;border-radius:999px;padding:10px 18px;font-weight:800;font-size:1.15rem;box-shadow:0 4px 0 #F2E3BF}
+  .bar{height:16px;background:#F1E6CC;border-radius:999px;overflow:hidden;margin-bottom:20px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));width:0;transition:width .3s}
+
+  .q-label{text-align:center;font-size:1.3rem;color:var(--sub);font-weight:700}
+  .dec{text-align:center;font-size:4.2rem;font-weight:900;margin:6px 0}
+  .dec small{font-size:1.6rem;color:var(--sub)}
+  .target{display:block;width:max-content;margin:4px auto 20px;color:#fff;font-size:1.6rem;font-weight:900;padding:10px 26px;border-radius:999px}
+  .answer{display:flex;gap:10px}
+  .answer input{flex:1;font-size:2.2rem;text-align:center;letter-spacing:4px;font-weight:800;text-transform:uppercase}
+  .keys{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin:16px 0}
+  .key{font-size:1.6rem;font-weight:800;padding:16px 0;border-radius:14px;border:none;background:#EEF2FF;color:var(--ink);cursor:pointer;font-family:inherit;box-shadow:0 4px 0 #D3DAF5}
+  .key:active{transform:translateY(3px);box-shadow:0 1px 0 #D3DAF5}
+  .key.wide{grid-column:span 2;background:#FFE9EF;box-shadow:0 4px 0 #F6C9D6}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row .btn{flex:1}
+
+  .msg{border-radius:18px;padding:16px 20px;margin-top:16px;font-size:1.2rem;line-height:1.7;display:none}
+  .msg.ok{display:block;background:#E3FAF6;border:3px solid var(--green)}
+  .msg.hint{display:block;background:#FFF6D6;border:3px solid var(--yellow)}
+  .msg.bad{display:block;background:#FFE9EF;border:3px solid var(--pink)}
+  .msg b{font-size:1.3rem}
+  .steps{font-family:Consolas,"D2Coding",monospace;background:#fff;border-radius:12px;padding:10px 14px;margin-top:8px;font-size:1.1rem;white-space:pre;overflow-x:auto}
+
+  .big-score{text-align:center;font-size:5rem;font-weight:900;color:var(--blue);margin:6px 0}
+  .who{text-align:center;font-size:1.4rem;font-weight:700}
+  .grade{text-align:center;font-size:1.5rem;margin:8px 0 20px}
+  table{width:100%;border-collapse:collapse;font-size:1.05rem;margin:14px 0 22px}
+  th,td{padding:10px 8px;text-align:center;border-bottom:2px solid #F1F1F4}
+  th{background:#F7F8FC}
+  .o{color:var(--green);font-weight:900} .x{color:var(--pink);font-weight:900}
+  .hidden{display:none}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  .shake{animation:shake .3s}
+  @media (max-width:560px){
+    .card{padding:22px 16px}.dec{font-size:3.2rem}.keys{grid-template-columns:repeat(4,1fr)}
+    .answer{flex-direction:column}
+  }
+  @media print{.no-print{display:none!important} body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 시작 화면 -->
+  <section id="start" class="card">
+    <h1>🔢 진법 변환 연습 게임</h1>
+    <p class="lead">10진수를 2진수 · 8진수 · 16진수로 바꿔 보세요!</p>
+    <label for="sid">학번</label>
+    <input type="text" id="sid" inputmode="numeric" placeholder="예) 10305" maxlength="10">
+    <label for="sname">이름</label>
+    <input type="text" id="sname" placeholder="예) 홍길동" maxlength="12">
+    <div class="err" id="startErr"></div>
+    <button class="btn blue full" id="startBtn">게임 시작하기 ▶</button>
+    <div class="rules">
+      📌 <b>게임 방법</b><br>
+      • 총 <b>15문제</b>, 맞히면 <b>+10점</b> (만점 150점)<br>
+      • 어떤 진법으로 바꿀지는 <b>무작위</b>로 나와요<br>
+      • 틀리면 <b>힌트</b>를 보고 한 번 더 도전할 수 있어요<br>
+      • 두 번째도 틀리면 정답과 풀이를 보여 주고 다음 문제로 넘어가요
+    </div>
+  </section>
+
+  <!-- 게임 화면 -->
+  <section id="game" class="hidden">
+    <div class="top">
+      <div class="pill" id="who">👤</div>
+      <div class="pill">⭐ <span id="score">0</span>점</div>
+      <div class="pill">📝 <span id="qnum">1</span> / 15</div>
+    </div>
+    <div class="bar"><div id="prog"></div></div>
+    <div class="card">
+      <div class="q-label">다음 10진수를</div>
+      <div class="dec"><span id="decNum">0</span><small>₍₁₀₎</small></div>
+      <span class="target" id="target">2진수로</span>
+      <div class="q-label" style="margin-bottom:14px">바꾸면?</div>
+      <div class="answer">
+        <input type="text" id="ans" autocomplete="off" placeholder="정답 입력">
+      </div>
+      <div class="keys" id="keys"></div>
+      <div class="row">
+        <button class="btn green" id="checkBtn">✔ 정답 확인</button>
+        <button class="btn blue hidden" id="nextBtn">다음 문제 ▶</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+  </section>
+
+  <!-- 결과 화면 -->
+  <section id="result" class="card hidden">
+    <h1>🎉 게임 끝!</h1>
+    <div class="who" id="rWho"></div>
+    <div class="big-score"><span id="rScore">0</span>점</div>
+    <div class="grade" id="rGrade"></div>
+    <table>
+      <thead><tr><th>번호</th><th>문제</th><th>정답</th><th>내 답</th><th>결과</th></tr></thead>
+      <tbody id="rTable"></tbody>
+    </table>
+    <div class="row no-print">
+      <button class="btn yellow" onclick="window.print()">🖨 결과 인쇄</button>
+      <button class="btn pink" id="retryBtn">🔁 다시 하기</button>
+      <button class="btn gray" id="homeBtn">🏠 처음으로</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const TOTAL = 15, POINT = 10;
+const BASES = {
+  2:  {name:'2진수',  color:'var(--b2)',  digits:'01',               min:5,  max:127},
+  8:  {name:'8진수',  color:'var(--b8)',  digits:'01234567',         min:8,  max:511},
+  16: {name:'16진수', color:'var(--b16)', digits:'0123456789ABCDEF', min:16, max:1023}
+};
+const $ = id => document.getElementById(id);
+let st = {};
+
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+
+function makeQuestions(){
+  // 각 진법이 최소 4번씩 나오도록 섞고, 나머지는 무작위
+  const list = [2,2,2,2,8,8,8,8,16,16,16,16];
+  while(list.length < TOTAL) list.push([2,8,16][rand(0,2)]);
+  for(let i=list.length-1;i>0;i--){const j=rand(0,i);[list[i],list[j]]=[list[j],list[i]];}
+  const used = new Set();
+  return list.map(base=>{
+    let n; do{ n = rand(BASES[base].min, BASES[base].max);}while(used.has(base+'-'+n));
+    used.add(base+'-'+n);
+    return {n, base, answer:n.toString(base).toUpperCase(), user:'', correct:false, tries:0};
+  });
+}
+
+function show(id){['start','game','result'].forEach(s=>$(s).classList.toggle('hidden', s!==id));window.scrollTo(0,0);}
+
+$('startBtn').onclick = ()=>{
+  const sid=$('sid').value.trim(), name=$('sname').value.trim();
+  if(!sid){$('startErr').textContent='학번을 입력해 주세요.';$('sid').focus();return;}
+  if(!/^\d+$/.test(sid)){$('startErr').textContent='학번은 숫자만 입력해 주세요.';$('sid').focus();return;}
+  if(!name){$('startErr').textContent='이름을 입력해 주세요.';$('sname').focus();return;}
+  $('startErr').textContent='';
+  st = {sid, name, score:0, idx:0, qs:makeQuestions()};
+  $('who').textContent = `👤 ${sid} ${name}`;
+  show('game'); loadQ();
+};
+['sid','sname'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')$('startBtn').click();}));
+
+function loadQ(){
+  const q = st.qs[st.idx], b = BASES[q.base];
+  $('qnum').textContent = st.idx+1;
+  $('score').textContent = st.score;
+  $('prog').style.width = (st.idx/TOTAL*100)+'%';
+  $('decNum').textContent = q.n;
+  $('target').textContent = b.name+'로';
+  $('target').style.background = b.color;
+  $('ans').value=''; $('ans').disabled=false;
+  $('ans').placeholder = q.base===16 ? '예) 1F (0~9, A~F)' : `숫자 ${b.digits[0]}~${b.digits.slice(-1)}만 사용`;
+  $('msg').className='msg'; $('msg').innerHTML='';
+  $('checkBtn').classList.remove('hidden'); $('checkBtn').disabled=false;
+  $('nextBtn').classList.add('hidden');
+  buildKeys(q.base);
+  setTimeout(()=>$('ans').focus(),50);
+}
+
+function buildKeys(base){
+  const k=$('keys'); k.innerHTML='';
+  BASES[base].digits.split('').forEach(d=>{
+    const b=document.createElement('button'); b.className='key'; b.textContent=d;
+    b.onclick=()=>{ if(!$('ans').disabled){$('ans').value+=d;} };
+    k.appendChild(b);
+  });
+  const del=document.createElement('button'); del.className='key wide'; del.textContent='⌫ 지우기';
+  del.onclick=()=>{ if(!$('ans').disabled) $('ans').value=$('ans').value.slice(0,-1); };
+  k.appendChild(del);
+}
+
+$('ans').addEventListener('input',()=>{
+  const q=st.qs[st.idx]; const ok=BASES[q.base].digits;
+  $('ans').value = $('ans').value.toUpperCase().split('').filter(c=>ok.includes(c)).join('');
+});
+$('ans').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ if(!$('checkBtn').classList.contains('hidden')) $('checkBtn').click(); else $('nextBtn').click(); }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && !$('game').classList.contains('hidden') && $('ans').disabled) $('nextBtn').click();
+});
+
+$('checkBtn').onclick = ()=>{
+  const q=st.qs[st.idx];
+  let v=$('ans').value.trim().toUpperCase().replace(/^0+(?=.)/,'');
+  if(!v){shake();showMsg('bad','✏️ 답을 입력해 주세요!');return;}
+  q.tries++; q.user=v;
+  if(v===q.answer){
+    q.correct=true; st.score+=POINT; $('score').textContent=st.score;
+    showMsg('ok',`<b>🎉 정답입니다! +${POINT}점</b><br>${q.n}₍₁₀₎ = ${q.answer}₍${q.base}₎`);
+    finishQ();
+  } else if(q.tries===1){
+    shake();
+    showMsg('hint',`<b>💡 아쉬워요! 힌트를 보고 한 번 더 도전해 보세요.</b><br>${hint(q)}`);
+    $('ans').value=''; $('ans').focus();
+  } else {
+    shake();
+    showMsg('bad',`<b>😢 틀렸어요.</b> 정답은 <b>${q.answer}</b>₍${q.base}₎ 입니다.<br>${solution(q)}`);
+    finishQ();
+  }
+};
+
+function finishQ(){
+  $('ans').disabled=true; $('checkBtn').classList.add('hidden');
+  $('nextBtn').classList.remove('hidden');
+  $('nextBtn').textContent = st.idx===TOTAL-1 ? '결과 보기 🏁' : '다음 문제 ▶';
+  $('nextBtn').focus();
+}
+
+$('nextBtn').onclick = ()=>{
+  st.idx++;
+  if(st.idx>=TOTAL) showResult(); else loadQ();
+};
+
+function showMsg(type,html){const m=$('msg'); m.className='msg '+type; m.innerHTML=html;}
+function shake(){const c=$('ans'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');}
+
+function divSteps(n,base,limit){
+  let lines=[], x=n, cnt=0;
+  while(x>0){
+    const r=x%base, rs=r.toString(base).toUpperCase();
+    lines.push(`${String(x).padStart(5)} ÷ ${base} = 몫 ${String(Math.floor(x/base)).padStart(4)} … 나머지 ${rs}${base===16&&r>9?` (${r})`:''}`);
+    x=Math.floor(x/base); cnt++;
+    if(limit && cnt>=limit && x>0){lines.push('      ⋮  (몫이 0이 될 때까지 계속!)');break;}
+  }
+  return lines.join('\n');
+}
+
+function hint(q){
+  const len=q.answer.length;
+  if(q.base===2){
+    return `${q.n}을 2로 계속 나누고, <b>나머지를 아래에서 위로</b> 읽어요. 정답은 <b>${len}자리</b>예요.
+      <div class="steps">${divSteps(q.n,2,3)}</div>`;
+  }
+  if(q.base===8){
+    const bin=q.n.toString(2);
+    return `방법 ① 8로 계속 나누고 나머지를 거꾸로 읽기<br>
+      방법 ② 2진수 <b>${bin}</b>₍₂₎을 <b>오른쪽부터 3자리씩</b> 묶기. 정답은 <b>${len}자리</b>, 첫 자리는 <b>${q.answer[0]}</b>예요.`;
+  }
+  const bin=q.n.toString(2);
+  return `16진수에서 10=A, 11=B, 12=C, 13=D, 14=E, 15=F 예요.<br>
+    2진수 <b>${bin}</b>₍₂₎을 <b>오른쪽부터 4자리씩</b> 묶어 보세요. 정답은 <b>${len}자리</b>, 첫 자리는 <b>${q.answer[0]}</b>예요.`;
+}
+
+function group(bin,size){
+  const pad=Math.ceil(bin.length/size)*size; const b=bin.padStart(pad,'0'); const g=[];
+  for(let i=0;i<b.length;i+=size) g.push(b.slice(i,i+size));
+  return g;
+}
+function solution(q){
+  if(q.base===2) return `<div class="steps">${divSteps(q.n,2)}\n→ 나머지를 아래에서 위로 읽으면 ${q.answer}</div>`;
+  const size = q.base===8?3:4;
+  const g=group(q.n.toString(2),size);
+  const conv=g.map(x=>parseInt(x,2).toString(q.base).toUpperCase());
+  return `<div class="steps">${q.n}₍₁₀₎ = ${q.n.toString(2)}₍₂₎
+${size}자리씩 묶기: ${g.join(' | ')}
+각 묶음 변환:   ${conv.map((c,i)=>c.padStart(g[i].length)).join(' | ')}
+→ ${q.answer}₍${q.base}₎</div>`;
+}
+
+function showResult(){
+  $('prog').style.width='100%';
+  const correct=st.qs.filter(q=>q.correct).length;
+  $('rWho').textContent=`${st.sid} ${st.name}`;
+  $('rScore').textContent=st.score;
+  let g;
+  if(st.score>=140) g='🏆 진법 변환 마스터! 완벽해요!';
+  else if(st.score>=110) g='🥇 아주 잘했어요!';
+  else if(st.score>=80) g='🙂 좋아요! 틀린 문제를 다시 확인해 봐요.';
+  else g='💪 힌트를 참고해서 다시 도전해 봐요!';
+  $('rGrade').innerHTML=`맞힌 문제 <b>${correct}</b> / ${TOTAL}<br>${g}`;
+  $('rTable').innerHTML=st.qs.map((q,i)=>`<tr>
+    <td>${i+1}</td><td>${q.n}₍₁₀₎ → ${BASES[q.base].name}</td>
+    <td><b>${q.answer}</b></td><td>${q.user||'-'}</td>
+    <td class="${q.correct?'o':'x'}">${q.correct?(q.tries>1?'○ (힌트)':'○'):'✕'}</td></tr>`).join('');
+  show('result');
+}
+
+$('retryBtn').onclick=()=>{
+  st={sid:st.sid,name:st.name,score:0,idx:0,qs:makeQuestions()};
+  show('game'); loadQ();
+};
+$('homeBtn').onclick=()=>{ show('start'); $('sid').focus(); };
+</script>
+</body>
+</html>
